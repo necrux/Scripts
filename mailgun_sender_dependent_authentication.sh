@@ -1,5 +1,5 @@
 #!/bin/bash
-#This is an EXTREMELY dirty bash script for automatically setting up send dependent authentication for all of your Mailgun domains.
+#This is an EXTREMELY dirty bash script for automatically setting up sender dependent authentication for all of your Mailgun domains.
 clear
 version=$(grep -o "release [6-7]" /etc/redhat-release|cut -d' ' -f2)
 
