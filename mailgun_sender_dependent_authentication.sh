@@ -16,7 +16,7 @@ EOF
 else
 cat << EOF
 
-Be certian that you have the following entries in the /etc/postfix/main.cf file:
+Be certain that you have the following entries in the /etc/postfix/main.cf file:
 
 smtp_sasl_auth_enable = yes
 relayhost = [smtp.mailgun.org]:587
