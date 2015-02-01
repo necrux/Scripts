@@ -1,12 +1,12 @@
 #!/bin/bash
 #Enumerate all servers on your Rackspace cloud account and establish an SSH connection to one via a selection menu.
 
-#Substitute with your Rackspace info.
+#Fill in with your Rackspace info.
 USERNAME=
 DDI=
 API=
 
-#Substituta with your SSH info.
+#Fill in with your SSH info.
 SSH_USER=
 SSH_PORT=
 SSH_COMMAND=
