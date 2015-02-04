@@ -45,4 +45,4 @@ do
     read -p ",;-;, >>> " choice
 done
 
-ssh -p$SSH_PORT $SSH_USER@${SERVER_IP[$((choice - 1))]}
+ssh -o StrictHostKeyChecking=no -p$SSH_PORT $SSH_USER@${SERVER_IP[$((choice - 1))]}
