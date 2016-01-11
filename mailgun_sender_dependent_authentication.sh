@@ -1,15 +1,6 @@
 #!/bin/bash
-#This is an EXTREMELY dirty bash script for automatically setting up sender dependent authentication for all of your Mailgun domains.
-
-#If Mailgun has already been set up on this server be sure to go into /etc/postfix/main.cf and comment the following lines to avoid duplicate entries:
-#If Mailgun has never been setup or has already been configured properly for this script then no changes need to be made.
-
-#smtp_sasl_auth_enable
-#relayhost
-#smtp_sasl_security_options
-#smtp_sasl_password_maps
-#sender_dependent_relayhost_maps
-#smtp_sender_dependent_authentication
+#This is a quick and dirty bash script for automatically setting up sender-dependent authentication for all of your Mailgun domains.
+#If you have multiple sets of credentials per domain or are not using the default postmaster user for SMTP, this script will probably not work for you.
 
 #Below is the format for the 2 files created.
 #/etc/postfix/sasl_passwd
@@ -19,40 +10,50 @@
 #    @<domain> [smtp.mailgun.org]:587
 #    @<domain> [smtp.mailgun.org]:587
 
+function sasl_passwd {
+    awk -F\" '/name/ {
+        domain = sprintf($4); 
+        printf "@" domain " postmaster@" domain ":"
+    } /smtp_password/ {
+        passwd = sprintf($4); 
+        print passwd
+    }' /tmp/mailgun
+}
+
+function sender_relay {
+    awk -F\" '/name/ {
+        print "@" $4 " [smtp.mailgun.org]:587"
+    }' /tmp/mailgun
+}
+
 clear
-version=$(grep -o "release [6-7]" /etc/redhat-release|cut -d' ' -f2)
-
-read -p "Is this your first time configuring Mailgun on this server? [Y/n]: " ANS
-if [ "$ANS" == "y" ] || [ "$ANS" == "Y" ]; then
-cat >> /etc/postfix/main.cf << EOF
-smtp_sasl_auth_enable = yes
-relayhost = [smtp.mailgun.org]:587
-smtp_sasl_security_options = noanonymous
-smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
-sender_dependent_relayhost_maps = hash:/etc/postfix/sender_relay
-smtp_sender_dependent_authentication = yes
-EOF
-else
 cat << EOF
+This script will configure Postfix for sender-dependent authentication with Mailgun.
 
-Be certain that you have the following entries in the /etc/postfix/main.cf file:
-
-smtp_sasl_auth_enable = yes
-relayhost = [smtp.mailgun.org]:587
-smtp_sasl_security_options = noanonymous
-smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
-sender_dependent_relayhost_maps = hash:/etc/postfix/sender_relay
-smtp_sender_dependent_authentication = yes
+To complete your set-up you will need your API key from Mailgun:
+https://help.mailgun.com/hc/en-us/articles/203380100-Where-can-I-find-my-API-key-and-SMTP-credentials-
 
 EOF
+
+if [ $(id -u) -ne 0 ]; then 
+    echo "This script must be run as root."
+    exit 1
 fi
 
-echo "What is your Mailgun API key? The key starts with 'key-' and can be found under the 'My Account' section of your Mailgun control panel."
+echo "What is your Mailgun API key?"
 read -p "-> " MAILAPI
 
-paste <(curl -s https://api.mailgun.net/v2/domains --user "api:$MAILAPI"|awk -F\" '/smtp_login/ {print $4}') <(curl -s https://api.mailgun.net/v2/domains --user "api:$MAILAPI"|awk -F\" '/smtp_password/ {print $4}')|awk -F'[@\t]' '{print "@" $2 " postmaster@" $2 ":" $3}' > /etc/postfix/sasl_passwd
+postconf -e "smtp_sasl_auth_enable = yes"
+postconf -e "relayhost = [smtp.mailgun.org]:587"
+postconf -e "smtp_sasl_security_options = noanonymous"
+postconf -e "smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd"
+postconf -e "sender_dependent_relayhost_maps = hash:/etc/postfix/sender_relay"
+postconf -e "smtp_sender_dependent_authentication = yes"
 
-paste <(curl -s https://api.mailgun.net/v2/domains --user "api:$MAILAPI"|awk -F\" '/smtp_login/ {print $4}') <(curl -s https://api.mailgun.net/v2/domains --user "api:$MAILAPI"|awk -F\" '/smtp_password/ {print $4}')|awk -F'[@\t]' '{print "@" $2 " [smtp.mailgun.org]:587"}' > /etc/postfix/sender_relay
+curl -s https://api.mailgun.net/v2/domains --user "api:$MAILAPI" > /tmp/mailgun
+
+sasl_passwd > /etc/postfix/sasl_passwd
+sender_relay > /etc/postfix/sender_relay
 
 chmod 600 /etc/postfix/sasl_passwd
 chmod 600 /etc/postfix/sender_relay
@@ -60,11 +61,6 @@ chmod 600 /etc/postfix/sender_relay
 postmap /etc/postfix/sasl_passwd
 postmap /etc/postfix/sender_relay
 
-case $version in
-'6')
-    /etc/init.d/postfix restart
-;;
-'7')
-    systemctl restart postfix.service
-;;
-esac
+systemctl restart postfix.service > /dev/null 2>&1 || /etc/init.d/postfix restart > /dev/null 2>&1
+
+rm -f /tmp/mailgun
