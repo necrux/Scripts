@@ -37,7 +37,7 @@ EOF
 
 if [ $(id -u) -ne 0 ]; then 
     echo "This script must be run as root."
-    exit 1
+    exit 126
 fi
 
 echo "What is your Mailgun API key?"
