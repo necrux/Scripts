@@ -61,7 +61,6 @@ fi
 echo "What is your Mailgun API key?"
 read -p "-> " MAILAPI
 
-
 postconf -e "smtp_sasl_auth_enable = yes"
 postconf -e "smtp_sasl_security_options = noanonymous"
 postconf -e "smtp_sender_dependent_authentication = yes"
