@@ -10,13 +10,24 @@
 #    @<domain> [smtp.mailgun.org]:587
 #    @<domain> [smtp.mailgun.org]:587
 
+#function sasl_passwd {
+#    awk -F\" '/name/ {
+#        domain = sprintf($4); 
+#        printf "@" domain " postmaster@" domain ":"
+#    } /smtp_password/ {
+#        passwd = sprintf($4); 
+#        print passwd
+#    }' /tmp/mailgun
+#}
+
 function sasl_passwd {
-    awk -F\" '/name/ {
+    awk -F'["@]' '/name/ {
         domain = sprintf($4); 
-        printf "@" domain " postmaster@" domain ":"
+    } /smtp_login/ {
+        user = sprintf($4);
     } /smtp_password/ {
-        passwd = sprintf($4); 
-        print passwd
+        passwd = sprintf($4);
+        printf "@" domain " " user "@" domain ":" passwd "\n"
     }' /tmp/mailgun
 }
 
@@ -55,8 +66,8 @@ curl -s https://api.mailgun.net/v2/domains --user "api:$MAILAPI" > /tmp/mailgun
 sasl_passwd > /etc/postfix/sasl_passwd
 sender_relay > /etc/postfix/sender_relay
 
-chmod 600 /etc/postfix/sasl_passwd
-chmod 600 /etc/postfix/sender_relay
+#chmod 600 /etc/postfix/sasl_passwd
+#chmod 600 /etc/postfix/sender_relay
 
 postmap /etc/postfix/sasl_passwd
 postmap /etc/postfix/sender_relay
