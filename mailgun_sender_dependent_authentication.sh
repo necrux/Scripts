@@ -37,7 +37,7 @@ function catchall_domain {
     done
 
     DOMAIN=$(awk -F\" '/name/ {print $4}' /tmp/mailgun | head -$DOMAIN_NUM | tail -n1)
-    echo "[smtp.mailgun.org]:587 $(awk "/^@$DOMAIN/ {print \$2}" /etc/postfix/sasl_passwd)" >> /etc/postfix/sasl_passwd
+    echo "[smtp.mailgun.org]:587 $(awk "/^@$DOMAIN / {print \$2}" /etc/postfix/sasl_passwd)" >> /etc/postfix/sasl_passwd
     postmap /etc/postfix/sasl_passwd
 }
 
