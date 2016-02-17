@@ -10,7 +10,7 @@
 #    @<domain> [smtp.mailgun.org]:587
 
 function sasl_passwd {
-    awk -F'["@]' '/name/ {
+    awk -F\" '/name/ {
         domain = sprintf($4); 
     } /smtp_password/ {
         passwd = sprintf($4);
