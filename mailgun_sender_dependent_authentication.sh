@@ -1,6 +1,5 @@
 #!/bin/bash
 #This is a quick and dirty bash script for automatically setting up sender-dependent authentication for all of your Mailgun domains.
-#If you have multiple sets of credentials per domain or are not using the default postmaster user for SMTP, this script *may* not work for you.
 
 #Below is the format for the 2 files created.
 #/etc/postfix/sasl_passwd
@@ -13,11 +12,9 @@
 function sasl_passwd {
     awk -F'["@]' '/name/ {
         domain = sprintf($4); 
-    } /smtp_login/ {
-        user = sprintf($4);
     } /smtp_password/ {
         passwd = sprintf($4);
-        printf "@" domain " " user "@" domain ":" passwd "\n"
+        printf "@" domain " postmaster@" domain ":" passwd "\n"
     }' /tmp/mailgun
 }
 
@@ -67,7 +64,7 @@ postconf -e "smtp_sender_dependent_authentication = yes"
 postconf -e "smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd"
 postconf -e "sender_dependent_relayhost_maps = hash:/etc/postfix/sender_relay"
 
-curl -s https://api.mailgun.net/v2/domains --user "api:$MAILAPI" > /tmp/mailgun
+curl -s https://api.mailgun.net/v3/domains --user "api:$MAILAPI" > /tmp/mailgun
 
 sasl_passwd > /etc/postfix/sasl_passwd
 sender_relay > /etc/postfix/sender_relay
