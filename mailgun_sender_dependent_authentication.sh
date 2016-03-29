@@ -42,6 +42,8 @@ function catchall_domain {
 }
 
 clear
+trap "{ rm -f /tmp/mailgun; exit 2; }" SIGINT SIGTERM
+
 cat << EOF
 This script will configure Postfix for sender-dependent authentication with Mailgun.
 
