@@ -36,7 +36,7 @@ function usage {
 	cat <<- EOF
 
 		This script can be used to compare the contents of two directories.
-		Currently the script does not check for files that exist in the second list directory, but not the first. 
+		Currently the script does not check for files that exist in the second directory, but not the first. 
 
 		SYNTAX
 		  compare_dirs.sh [ DIR1 DIR2 ]
