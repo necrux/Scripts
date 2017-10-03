@@ -22,7 +22,7 @@ function is_command {
   for program in $@; do
     hash ${program} > /dev/null 2>&1
     if [ $? != 0 ]; then
-      echo "Command not found: ${program}"
+      echo "Command not found: ${program}" >&2
       FAILURE='true'
     fi
   done
