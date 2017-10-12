@@ -3,7 +3,7 @@
 # Rackspace public cloud token. Fill in ${USER}
 # and ${API_KEY} with your information and
 # source this script. The token is exported as
-# ${TOKEN}.
+# ${RAX_TOKEN}.
 
 USER=
 API_KEY=
@@ -31,4 +31,4 @@ function is_command {
 
 is_command jq
 
-export TOKEN=$(curl -s ${ENDPOINT} -d "${PAYLOAD}" -H "${HEADERS}" | jq --raw-output .[].token.id)
+export RAX_TOKEN=$(curl -s ${ENDPOINT} -d "${PAYLOAD}" -H "${HEADERS}" | jq --raw-output .[].token.id)
