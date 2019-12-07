@@ -8,7 +8,10 @@ def generate_json_file(role)
     role_obj = Chef::Role.new
     role_obj.from_file(role)
     json_file = Dir.pwd + '/' + File.basename(role, '.rb') + '.json'
-    File.open(json_file, 'w'){|f| f.write(JSON.pretty_generate(role_obj))}
+    File.open(json_file, 'w') do |f|
+        json_obj = JSON.parse(role_obj.to_json)
+        f.write(JSON.pretty_generate(json_obj))
+    end
 end
 
 usage = %{
